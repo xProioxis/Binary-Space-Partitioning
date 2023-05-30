@@ -9,39 +9,23 @@
 
 # Basis for an algorithm going over Binary Space Partitioning
 
+from Segment import Segment
+
 view_pos = (15, 40)
-segments = [[(10, 60), (20, 60)], [(10, 80), (20, 80)], [(10, 60), (10, 80)], [(20, 60), (20, 80)], # box 1
-           [(80, 50), (80, 20)], [(100, 20), (100, 50)], [(80, 50), (100, 50)], [(80, 20), (100, 20)], # box 2
-           [(60, 80), (70, 70)], [(60, 80), (70, 80)], [(70, 80), (70, 70)], # triangle 1
-           [(25, 10), (40, 15)], [(25, 10), (40, 10)], [(40, 10), (40, 15)] # triangle 2
-           ]
+segments = [ Segment("A", 0, 0, 0, 100), Segment("B", 0, 100, 100, 100), Segment("C", 100, 100, 100, 0), Segment("D", 100, 0, 0, 0),
+            Segment("E", 10, 60, 20, 60), Segment("F", 20, 80, 10, 80), Segment("G", 10, 60, 10, 80), Segment("H", 20, 60, 20, 80), # box 1
+           Segment("I",80, 50, 80, 20), Segment("J", 90, 20, 90, 50), Segment("K", 80, 50, 90, 50), Segment("L", 80, 20, 90, 20)] # box 2
+           #Segment((60, 80), (70, 70)], [(60, 80), (70, 80)], [(70, 80), (70, 70)], # triangle 1
+           #[(25, 10), (40, 15)], [(25, 10), (40, 10)], [(40, 10), (40, 15)] # triangle 2
+           #]
+
 
 
 
 
 for seg in segments:
+    
     in_front = False
-    if seg[0][0] == seg[1][0]: # if purely vertical line
-        if view_pos[1] < seg[0][1]: # determine posistion based on y value
-            in_front = True
-        else:
-            in_front = False
-
-    elif seg[0][1] == seg[1][1]: # if purely horizontal line
-        if view_pos[1] < seg[0][1]:
-            in_front = True
-        else:
-            in_front = False
-
-    else:
-        view_seg_vec = (seg[0][0] - view_pos[0], seg[0][1] - view_pos[1])
-        seg_vec = (seg[1][0] - seg[0][0], seg[1][1] - seg[0][1])
-        cross_prod = (view_seg_vec[0] * seg_vec[1]) - (view_seg_vec[1] * seg_vec[0])
-
-        if cross_prod < 0:
-            in_front = True
-        else:
-            in_front = False
 
     if in_front:
         print(seg, "is in front!")
