@@ -37,8 +37,20 @@ Segment("A", 0, 0, 0, 100, True),
     Segment("F", 60, 50, 50, 60),
     Segment("E", 50, 60, 40, 50)""" # original segs
 
+
+"""
+Segment("G", 50, 40, 60, 50),
+    Segment("A", 0, 0, 0, 100, True),
+    Segment("E", 50, 60, 40, 50),
+    Segment("B", 0, 100, 100, 100, True),
+    Segment("F", 60, 50, 50, 60),
+    Segment("C", 100, 100, 100, 0, True),
+    Segment("D", 100, 0, 0, 0, True),
+    Segment("H", 40, 50, 50, 40)""" # initial correct splitting behavior
+
 segs = [
     Segment("G", 50, 40, 60, 50),
+    Segment("Z", 20, 0, 20, 40),
     Segment("A", 0, 0, 0, 100, True),
     Segment("E", 50, 60, 40, 50),
     Segment("B", 0, 100, 100, 100, True),
@@ -71,6 +83,20 @@ class BSP_Tree:
 
     def in_order(self):
         self.in_order_help(self.root)
+        print()
+
+
+    def in_order_nums_help(self, node):
+        if node == None:
+            return
+        
+        self.in_order_nums_help(node.left)
+        print(node.segment.label, f"({node.segment.x1},{node.segment.y1}), ({node.segment.x2},{node.segment.y2}) ({node.segment.vector[0]},{node.segment.vector[1]})", end=" ")
+        self.in_order_nums_help(node.right)
+
+
+    def in_order_nums(self):
+        self.in_order_nums_help(self.root)
         print()
 
     def post_order_help(self, node):
@@ -208,7 +234,7 @@ def make_bsp(node, seg_list):
                     first_new_lbl = f_nearest_wall.label + "1"
                     second_new_lbl = f_nearest_wall.label + "2"
                 else:
-                    print("activated")
+                    #print("activated")
                     num = ""
                     i = len(f_nearest_wall.label) - 1
                     while f_nearest_wall.label[i].isnumeric():
@@ -216,7 +242,7 @@ def make_bsp(node, seg_list):
                         i -= 1
 
                     first_new_lbl = f_nearest_wall.label
-                    second_new_lbl = f_nearest_wall.label + f"{int(num) + 1}"
+                    second_new_lbl = f_nearest_wall.label[:i+1] + f"{int(num) + 1}"
                 
                 # add new vector to list
                 new_wall = Segment(second_new_lbl, new_init_x, new_init_y, f_nearest_wall.x2, f_nearest_wall.y2, True)
@@ -242,6 +268,7 @@ def make_bsp(node, seg_list):
                     first_new_lbl = b_nearest_wall.label + "1"
                     second_new_lbl = b_nearest_wall.label + "2"
                 else:
+                    #print("activated")
                     num = ""
                     i = len(b_nearest_wall.label) - 1
                     while b_nearest_wall.label[i].isnumeric():
@@ -249,7 +276,7 @@ def make_bsp(node, seg_list):
                         i -= 1
 
                     first_new_lbl = b_nearest_wall.label
-                    second_new_lbl = b_nearest_wall.label + f"{int(num) + 1}"
+                    second_new_lbl = b_nearest_wall.label[:i+1] + f"{int(num) + 1}"
                 
                 # add new vector to list
                 new_wall = Segment(second_new_lbl, new_init_x, new_init_y, b_nearest_wall.x2, b_nearest_wall.y2, True)
@@ -297,15 +324,20 @@ def make_bsp(node, seg_list):
 
     
     
-
-tree = BSP_Tree(BSP_Node(segs[-1], None, None))
-segs.pop(-1)
+idx = -1
+tree = BSP_Tree(BSP_Node(segs[idx], None, None))
+segs.pop(idx)
 make_bsp(tree.root, segs)
+
+tree.in_order_nums()
+print()
 print("Post Order: ", end="") 
 tree.post_order()
 print()
 print("In Order:   ", end="")
 tree.in_order()
+
+
 
 #tree.show_tree()
 
