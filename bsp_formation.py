@@ -77,17 +77,31 @@ Segment("G", 50, 40, 60, 50),
     Segment("H", 40, 50, 50, 40)
 """# third split fix
 
+"""
+view_pos = (250, 90)
+Segment("G", 250, 240, 260, 250),
+    Segment("A", 100, 0, 100, 500, True),
+    Segment("E", 250, 260, 240, 250),
+    Segment("B", 100, 500, 500, 500, True),
+    Segment("F", 260, 250, 250, 260),
+    Segment("C", 500, 500, 500, 0, True),
+    Segment("D", 500, 0, 100, 0, True),
+    Segment("H", 240, 250, 250, 240)
+""" # more balanced tree fix
+
 colors = [RED,GREEN,BLUE,CYAN,MAGENTA,YELLOW,WHITE,ORANGE]
 
+view_pos = (250, 90)
+
 segs = [
-    Segment("G", 50, 40, 60, 50),
-    Segment("A", 0, 0, 0, 100, True),
-    Segment("E", 50, 60, 40, 50),
-    Segment("B", 0, 100, 100, 100, True),
-    Segment("F", 60, 50, 50, 60),
-    Segment("C", 100, 100, 100, 0, True),
-    Segment("D", 100, 0, 0, 0, True),
-    Segment("H", 40, 50, 50, 40)
+    Segment("G", 250, 240, 260, 250),
+    Segment("A", 100, 0, 100, 500, True),
+    Segment("E", 250, 260, 240, 250),
+    Segment("B", 100, 500, 500, 500, True),
+    Segment("F", 260, 250, 250, 260),
+    Segment("C", 500, 500, 500, 0, True),
+    Segment("D", 500, 0, 100, 0, True),
+    Segment("H", 240, 250, 250, 240)
 ]
 
 class BSP_Node:
@@ -152,12 +166,14 @@ class BSP_Tree:
 
         if cross_product(to_view_vec, seg.vector) < 0: # left side
             self.make_list_help(node.left, seg_list, view_pos)
+            seg_list.append(node.segment)
             self.make_list_help(node.right, seg_list, view_pos)
         else: # right side
             self.make_list_help(node.right, seg_list, view_pos)
+            seg_list.append(node.segment)
             self.make_list_help(node.left, seg_list, view_pos)
 
-        seg_list.append(node.segment)
+        
         
         
     
@@ -429,10 +445,12 @@ while running:
         pygame.time.wait(500)
     '''
 
-    view_pos = (90, 90)
+    
     BSP_list = tree.make_list(view_pos)
-    pygame.draw.circle(WINDOW, WHITE, view_pos, 3, 3)  
+    pygame.draw.circle(WINDOW, WHITE, view_pos, 3, 3)
     for seg in BSP_list:
+        #print(seg.label, end=" ")
         pygame.draw.line(WINDOW, seg.color, (seg.x1, seg.y1),(seg.x2, seg.y2), 1)
         pygame.display.update()
         pygame.time.wait(500)
+    pygame.time.wait(1000) # allow final line to be drawn
