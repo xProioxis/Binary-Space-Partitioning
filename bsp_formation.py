@@ -1,4 +1,20 @@
 from Segment import Segment
+import pygame
+import random
+import time
+
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (128, 128, 128)
+ORANGE = (255, 165, 0)
+
+
 
 def cross_product(vec1, vec2):
     #print((vec1[0] * vec2[1]) - (vec1[1] * vec2[0]))
@@ -48,9 +64,23 @@ Segment("G", 50, 40, 60, 50),
     Segment("D", 100, 0, 0, 0, True),
     Segment("H", 40, 50, 50, 40)""" # initial correct splitting behavior
 
+
+"""
+Segment("G", 50, 40, 60, 50),
+    Segment("Z", 20, 0, 20, 40),
+    Segment("A", 0, 0, 0, 100, True),
+    Segment("E", 50, 60, 40, 50),
+    Segment("B", 0, 100, 100, 100, True),
+    Segment("F", 60, 50, 50, 60),
+    Segment("C", 100, 100, 100, 0, True),
+    Segment("D", 100, 0, 0, 0, True),
+    Segment("H", 40, 50, 50, 40)
+"""# third split fix
+
+colors = [RED,GREEN,BLUE,CYAN,MAGENTA,YELLOW,WHITE,ORANGE]
+
 segs = [
     Segment("G", 50, 40, 60, 50),
-    Segment("Z", 20, 0, 20, 40),
     Segment("A", 0, 0, 0, 100, True),
     Segment("E", 50, 60, 40, 50),
     Segment("B", 0, 100, 100, 100, True),
@@ -111,23 +141,34 @@ class BSP_Tree:
         self.post_order_help(self.root)
 
     def show_tree_help(self, node, adjust=30):
+        return
+    
+    def make_list_help(self, node, seg_list, view_pos):
         if node == None:
-            return ""
-        if node.left == None and node.right == None:
-            return node.segment.label
+            return
+
+        seg = node.segment
+        to_view_vec = (view_pos[0]-seg.x1, view_pos[1]-seg.y1)
+
+        if cross_product(to_view_vec, seg.vector) < 0: # left side
+            self.make_list_help(node.left, seg_list, view_pos)
+            self.make_list_help(node.right, seg_list, view_pos)
+        else: # right side
+            self.make_list_help(node.right, seg_list, view_pos)
+            self.make_list_help(node.left, seg_list, view_pos)
+
+        seg_list.append(node.segment)
         
-        pad = ""
-        for i in range(adjust):
-            pad += " "
-
-        connection = " ".join((pad, "|    |"))
-
-        print(node.segment.label)
-        print(connection)
-        print( " ".join((pad[:-5], self.show_tree_help(node.left, adjust-1))), " ".join((pad + "    ", self.show_tree_help(node.right, adjust + 1))) )
+        
+    
+    def make_list(self, view_pos):
+        res = list()
+        self.make_list_help(self.root, res, view_pos)
+        return res
+        
 
     def show_tree(self):
-        self.show_tree_help(self.root)
+        print(self.show_tree_help(self.root))
         
 
 
@@ -150,7 +191,6 @@ def make_bsp(node, seg_list):
     
     if not curr_seg.is_wall and 2 <= len(seg_list):
 
-        
         curr_distance = None
 
         f_nearest_wall = None
@@ -245,7 +285,12 @@ def make_bsp(node, seg_list):
                     second_new_lbl = f_nearest_wall.label[:i+1] + f"{int(num) + 1}"
                 
                 # add new vector to list
+                new_color = colors[random.randint(0, len(colors)-1)]
+                while new_color == f_nearest_wall.color:
+                    new_color = colors[random.randint(0, len(colors)-1)]
+
                 new_wall = Segment(second_new_lbl, new_init_x, new_init_y, f_nearest_wall.x2, f_nearest_wall.y2, True)
+                new_wall.color = new_color
                 seg_list.append(new_wall)
 
                 # update first half of new vector (will overwrite current vectors place)
@@ -279,7 +324,12 @@ def make_bsp(node, seg_list):
                     second_new_lbl = b_nearest_wall.label[:i+1] + f"{int(num) + 1}"
                 
                 # add new vector to list
+                new_color = colors[random.randint(0, len(colors)-1)]
+                while new_color == b_nearest_wall.color:
+                    new_color = colors[random.randint(0, len(colors)-1)]
+
                 new_wall = Segment(second_new_lbl, new_init_x, new_init_y, b_nearest_wall.x2, b_nearest_wall.y2, True)
+                new_wall.color = new_color
                 seg_list.append(new_wall)
 
                 # update first half of new vector (will overwrite current vectors place)
@@ -337,48 +387,52 @@ print()
 print("In Order:   ", end="")
 tree.in_order()
 
+#BSP_list = tree.make_list()
+
+WINDOW = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Binary Space Partitioning")
+
+WINDOW.fill(BLACK)
 
 
-#tree.show_tree()
-
-
-'''
-# initialize the A and B matrix, we need to find x matrix (will allow us to find intersection of two vectors)
-# A = [a1, a2]  B = [b1]    x = [t]
-#     [a3, a4]      [b2]        [s]
-# Ax = B <==> x = A^(-1)B
-# A^(-1) =  1/(a1*a4 - a2*a3)  *  [a4, -a2]
-#                                 [-a3, a1]
-curr_seg = segs[2]
-seg = segs[1]
-
-a1 = seg.vector[0]; a2 = curr_seg.vector[0]
-a3 = seg.vector[1]; a4 = curr_seg.vector[1]
-b1 = curr_seg.x1 - seg.x1
-b2 = curr_seg.y1 - seg.y1
-inv_denom = (a1*a4) - (a2*a3)
-if inv_denom == 0: # no intersection
-    print("no intersection")
-
-# find intersection points
-t = ((a4 * b1) + (-a2 * b2)) * (1/inv_denom)
-s = ((-a3 * b1) + (a1 * b2)) * (1/inv_denom)
-intersect_x = seg.x1 + (seg.vector[0] * t)
-intersect_y = seg.y1 + (seg.vector[1] * t)
-
-# see if this wall is closest so far
-curr_distance = euclid_distance((curr_seg.x1, curr_seg.y1), (intersect_x, intersect_y))
-print(curr_distance, inv_denom, intersect_x, intersect_y)
-'''
+running = True
+while running:
+    WINDOW.fill(BLACK)
     
-'''
-H = segs[4]
+    for event in pygame.event.get():
+        
+        if event.type == pygame.QUIT:
+            running = False
 
+    '''
+    node = tree.root
+    seg_stack = list()
+    while node != None:
+        seg = node.segment
+        seg_stack.append(seg)
+        view_pos = (90, 90)
+        to_view_vec = (view_pos[0]-seg.x1, view_pos[1]-seg.y1)
+        
 
-for seg in segs:  
-    to_init_vector = (seg.x1 - H.x1, seg.y1 - H.y1)
-    if cross_product(to_init_vector, H.vector) < 0:
-        print(f"{seg.label} is on the left of H")
-    else:
-        print(f"{seg.label} is on the right of H")
-        '''
+        if cross_product(to_view_vec, seg.vector) < 0:
+            node = node.left
+        else:
+            node = node.right
+
+    pygame.draw.circle(WINDOW, WHITE, view_pos, 3, 3)        
+    
+    # using only current subsector
+    for i in reversed(range(len(seg_stack))):
+        seg = seg_stack[i]
+        pygame.draw.line(WINDOW, seg.color, (seg.x1, seg.y1),(seg.x2, seg.y2), 1)
+        pygame.display.update()
+        pygame.time.wait(500)
+    '''
+
+    view_pos = (90, 90)
+    BSP_list = tree.make_list(view_pos)
+    pygame.draw.circle(WINDOW, WHITE, view_pos, 3, 3)  
+    for seg in BSP_list:
+        pygame.draw.line(WINDOW, seg.color, (seg.x1, seg.y1),(seg.x2, seg.y2), 1)
+        pygame.display.update()
+        pygame.time.wait(500)
